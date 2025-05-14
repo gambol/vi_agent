@@ -1,4 +1,5 @@
 import os
+import random
 from langchain_anthropic import ChatAnthropic
 from langchain_deepseek import ChatDeepSeek
 from langchain_google_genai import ChatGoogleGenerativeAI
@@ -7,7 +8,7 @@ from langchain_openai import ChatOpenAI
 from langchain_ollama import ChatOllama
 from enum import Enum
 from pydantic import BaseModel
-from typing import Tuple
+from typing import Tuple, List
 
 
 class ModelProvider(str, Enum):
@@ -96,46 +97,84 @@ def get_model_info(model_name: str) -> LLMModel | None:
     return next((model for model in all_models if model.model_name == model_name), None)
 
 
+def get_random_api_key(api_key_env: str) -> str:
+    """
+    Get a random API key from a comma-separated list of API keys.
+    
+    Args:
+        api_key_env: The environment variable name containing the API key(s)
+    
+    Returns:
+        A randomly selected API key from the list
+        
+    Raises:
+        ValueError: If no valid API keys are found
+    """
+    api_keys = os.getenv(api_key_env, "").split(",")
+    api_keys = [key.strip() for key in api_keys if key.strip()]
+    if not api_keys:
+        raise ValueError(f"No API keys found in {api_key_env}")
+    return random.choice(api_keys)
+
+
 def get_model(model_name: str, model_provider: ModelProvider) -> ChatOpenAI | ChatGroq | ChatOllama | None:
+    """
+    Get an LLM model instance with proxy settings and random API key selection.
+    
+    Args:
+        model_name: The name of the model to use
+        model_provider: The provider of the model
+        
+    Returns:
+        An instance of the appropriate LLM model
+        
+    Raises:
+        ValueError: If required API keys are not found
+    """
+
+
     if model_provider == ModelProvider.GROQ:
-        api_key = os.getenv("GROQ_API_KEY")
+        api_key = get_random_api_key("GROQ_API_KEY")
         if not api_key:
-            # Print error to console
             print(f"API Key Error: Please make sure GROQ_API_KEY is set in your .env file.")
             raise ValueError("Groq API key not found.  Please make sure GROQ_API_KEY is set in your .env file.")
         return ChatGroq(model=model_name, api_key=api_key)
+    
     elif model_provider == ModelProvider.OPENAI:
-        # Get and validate API key
-        api_key = os.getenv("OPENAI_API_KEY")
+        api_key = get_random_api_key("OPENAI_API_KEY")
         if not api_key:
-            # Print error to console
             print(f"API Key Error: Please make sure OPENAI_API_KEY is set in your .env file.")
             raise ValueError("OpenAI API key not found.  Please make sure OPENAI_API_KEY is set in your .env file.")
         return ChatOpenAI(model=model_name, api_key=api_key)
+    
     elif model_provider == ModelProvider.ANTHROPIC:
-        api_key = os.getenv("ANTHROPIC_API_KEY")
+        api_key = get_random_api_key("ANTHROPIC_API_KEY")
         if not api_key:
             print(f"API Key Error: Please make sure ANTHROPIC_API_KEY is set in your .env file.")
             raise ValueError("Anthropic API key not found.  Please make sure ANTHROPIC_API_KEY is set in your .env file.")
         return ChatAnthropic(model=model_name, api_key=api_key)
+    
     elif model_provider == ModelProvider.DEEPSEEK:
-        api_key = os.getenv("DEEPSEEK_API_KEY")
+        api_key = get_random_api_key("DEEPSEEK_API_KEY")
         if not api_key:
             print(f"API Key Error: Please make sure DEEPSEEK_API_KEY is set in your .env file.")
             raise ValueError("DeepSeek API key not found.  Please make sure DEEPSEEK_API_KEY is set in your .env file.")
         return ChatDeepSeek(model=model_name, api_key=api_key)
+    
     elif model_provider == ModelProvider.GEMINI:
-        api_key = os.getenv("GOOGLE_API_KEY")
+        api_key = get_random_api_key("GOOGLE_API_KEY")
+        print("we use proxy")
+
         if not api_key:
             print(f"API Key Error: Please make sure GOOGLE_API_KEY is set in your .env file.")
             raise ValueError("Google API key not found.  Please make sure GOOGLE_API_KEY is set in your .env file.")
         return ChatGoogleGenerativeAI(model=model_name, api_key=api_key)
+    
     elif model_provider == ModelProvider.OLLAMA:
-        # For Ollama, we use a base URL instead of an API key
-        # Check if OLLAMA_HOST is set (for Docker on macOS)
+        # Ollama 不需要 API key，但需要代理设置
         ollama_host = os.getenv("OLLAMA_HOST", "localhost")
         base_url = os.getenv("OLLAMA_BASE_URL", f"http://{ollama_host}:11434")
         return ChatOllama(
             model=model_name,
-            base_url=base_url,
+            base_url=base_url
         )

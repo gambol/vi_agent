@@ -5,6 +5,8 @@ from typing import TypeVar, Type, Optional, Any
 from pydantic import BaseModel
 from src.llm.models import get_model, get_model_info
 from src.utils.progress import progress
+import random
+import os
 
 T = TypeVar("T", bound=BaseModel)
 
@@ -33,44 +35,77 @@ def call_llm(
     Returns:
         An instance of the specified Pydantic model
     """
+    try:
+        model_info = get_model_info(model_name)
+        llm = get_model(model_name, model_provider)
 
-    model_info = get_model_info(model_name)
-    llm = get_model(model_name, model_provider)
+        # For non-JSON support models, we can use structured output
+        if not (model_info and not model_info.has_json_mode()):
+            llm = llm.with_structured_output(
+                pydantic_model,
+                method="json_mode",
+            )
 
-    # For non-JSON support models, we can use structured output
-    if not (model_info and not model_info.has_json_mode()):
-        llm = llm.with_structured_output(
-            pydantic_model,
-            method="json_mode",
-        )
+        # Call the LLM with retries
+        for attempt in range(max_retries):
+            try:
+                # Call the LLM
+                result = llm.invoke(prompt)
 
-    # Call the LLM with retries
-    for attempt in range(max_retries):
-        try:
-            # Call the LLM
-            result = llm.invoke(prompt)
+                # For non-JSON support models, we need to extract and parse the JSON manually
+                if model_info and not model_info.has_json_mode():
+                    parsed_result = extract_json_from_response(result.content)
+                    if parsed_result:
+                        return pydantic_model(**parsed_result)
+                else:
+                    return result
 
-            # For non-JSON support models, we need to extract and parse the JSON manually
-            if model_info and not model_info.has_json_mode():
-                parsed_result = extract_json_from_response(result.content)
-                if parsed_result:
-                    return pydantic_model(**parsed_result)
-            else:
-                return result
+            except Exception as e:
+                error_msg = f"""
+                {'='*50}
+                LLM Call Error Details:
+                - Agent: {agent_name or 'Unknown'}
+                - Model: {model_name}
+                - Provider: {model_provider}
+                - Attempt: {attempt + 1}/{max_retries}
+                - Error Type: {type(e).__name__}
+                - Error Message: {str(e)}
+                - Prompt Type: {type(prompt).__name__}
+                - Prompt Content: {str(prompt)[:500]}...  # 只打印前500个字符
+                {'='*50}
+                """
+                print(error_msg)
 
-        except Exception as e:
-            if agent_name:
-                progress.update_status(agent_name, None, f"Error - retry {attempt + 1}/{max_retries}")
+                if agent_name:
+                    progress.update_status(agent_name, None, f"Error - retry {attempt + 1}/{max_retries}")
 
-            if attempt == max_retries - 1:
-                print(f"Error in LLM call after {max_retries} attempts: {e}")
-                # Use default_factory if provided, otherwise create a basic default
-                if default_factory:
-                    return default_factory()
-                return create_default_response(pydantic_model)
+                if attempt == max_retries - 1:
+                    print(f"Error in LLM call after {max_retries} attempts: {e}")
+                    # Use default_factory if provided, otherwise create a basic default
+                    if default_factory:
+                        return default_factory()
+                    return create_default_response(pydantic_model)
 
-    # This should never be reached due to the retry logic above
-    return create_default_response(pydantic_model)
+        # This should never be reached due to the retry logic above
+        return create_default_response(pydantic_model)
+
+    except Exception as outer_e:
+        error_msg = f"""
+        {'='*50}
+        Critical LLM Setup Error:
+        - Agent: {agent_name or 'Unknown'}
+        - Model: {model_name}
+        - Provider: {model_provider}
+        - Error Type: {type(outer_e).__name__}
+        - Error Message: {str(outer_e)}
+        {'='*50}
+        """
+        print(error_msg)
+        
+        # Use default_factory if provided, otherwise create a basic default
+        if default_factory:
+            return default_factory()
+        return create_default_response(pydantic_model)
 
 
 def create_default_response(model_class: Type[T]) -> T:
