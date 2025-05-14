@@ -168,7 +168,42 @@ def get_model(model_name: str, model_provider: ModelProvider) -> ChatOpenAI | Ch
         if not api_key:
             print(f"API Key Error: Please make sure GOOGLE_API_KEY is set in your .env file.")
             raise ValueError("Google API key not found.  Please make sure GOOGLE_API_KEY is set in your .env file.")
-        return ChatGoogleGenerativeAI(model=model_name, api_key=api_key)
+        # return ChatGoogleGenerativeAI(model=model_name, api_key=api_key)
+        try:
+            llm = ChatGoogleGenerativeAI(
+                    model=model_name,
+                    google_api_key=api_key,
+                    temperature=0.7,
+                    top_p=0.95,
+                    top_k=40,
+                    max_output_tokens=2048,
+                    convert_system_message_to_human=True  # 添加这个参数
+                )
+            
+            try:
+                test_response = llm.invoke("Hello")
+                print("成功测试 Gemini 连接")
+            except Exception as e:
+                print(f"测试 Gemini 连接时出错: {str(e)}")
+                raise
+            
+            # logger.info(f"成功初始化 Gemini 模型: {model_name}")
+            return llm
+        except Exception as e:
+            # logger.error(f"初始化 Gemini 模型时出错: {str(e)}")
+                # 尝试使用备用配置
+            try:
+                llm = ChatGoogleGenerativeAI(
+                        model=model_name,
+                        google_api_key=api_key,
+                        temperature=0.7,
+                        convert_system_message_to_human=True
+                )
+                # logger.info(f"使用备用配置成功初始化 Gemini 模型: {model_name}")
+                return llm
+            except Exception as e2:
+                # logger.error(f"使用备用配置初始化 Gemini 模型时出错: {str(e2)}")
+                raise
     
     elif model_provider == ModelProvider.OLLAMA:
         # Ollama 不需要 API key，但需要代理设置
