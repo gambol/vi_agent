@@ -163,7 +163,7 @@ def get_model(model_name: str, model_provider: ModelProvider) -> ChatOpenAI | Ch
     
     elif model_provider == ModelProvider.GEMINI:
         api_key = get_random_api_key("GOOGLE_API_KEY")
-        print("we use proxy")
+        # print("we use proxy")
 
         if not api_key:
             print(f"API Key Error: Please make sure GOOGLE_API_KEY is set in your .env file.")
