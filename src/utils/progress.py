@@ -5,7 +5,7 @@ from rich.table import Table
 from rich.style import Style
 from rich.text import Text
 from typing import Dict, Optional, Callable, List
-from display_names import ANALYST_DISPLAY_NAMES
+from src.utils.display_names import ANALYST_DISPLAY_NAMES
 
 console = Console()
 
@@ -67,7 +67,7 @@ class AgentProgress:
 
     def _get_display_name(self, agent_name: str) -> str:
         """Convert agent_name to a display-friendly format."""
-        return ANALYST_DISPLAY_NAMES.get(agent_name, agent_name.replace("_agent", "").replace("_", " ").title())
+        return ANALYST_DISPLAY_NAMES.get(agent_name, agent_name.replace("_agent", "").title())
 
     def _refresh_display(self):
         """Refresh the progress display."""

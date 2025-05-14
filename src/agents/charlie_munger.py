@@ -7,6 +7,20 @@ import json
 from typing_extensions import Literal
 from src.utils.progress import progress
 from src.utils.llm import call_llm
+import logging
+import traceback
+from typing import Dict, Any
+
+# 配置日志
+# logging.basicConfig(
+#     level=logging.DEBUG,
+#     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+#     handlers=[
+#         logging.FileHandler('munger_agent_debug.log'),
+#         logging.StreamHandler()
+#     ]
+# )
+# logger = logging.getLogger(__name__)
 
 class CharlieMungerSignal(BaseModel):
     signal: Literal["bullish", "bearish", "neutral"]
@@ -718,7 +732,7 @@ def generate_munger_output(
             {{
               "signal": "bullish/bearish/neutral",
               "confidence": float (0-100),
-              "reasoning": "string"
+              "reasoning":  "中文分析理由"
             }}
             """
         )
