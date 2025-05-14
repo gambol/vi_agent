@@ -9,7 +9,7 @@ from src.agents.portfolio_manager import portfolio_management_agent
 from src.agents.risk_manager import risk_management_agent
 from src.graph.state import AgentState
 from src.utils.display import print_trading_output
-from src.utils.analysts import ANALYST_ORDER, get_analyst_nodes
+from src.utils.analysts import ANALYST_ORDER, get_analyst_nodes, DEFAULT_ANALYSTS
 from src.utils.progress import progress
 from src.llm.models import LLM_ORDER, OLLAMA_LLM_ORDER, get_model_info, ModelProvider
 from src.utils.ollama import ensure_ollama_and_model
@@ -146,6 +146,7 @@ if __name__ == "__main__":
     parser.add_argument("--show-reasoning", action="store_true", help="Show reasoning from each agent")
     parser.add_argument("--show-agent-graph", action="store_true", help="Show the agent graph")
     parser.add_argument("--ollama", action="store_true", help="Use Ollama for local LLM inference")
+    parser.add_argument("-da", "--default-analysts", action="store_true", help="Use default analysts (Warren Buffett, Charlie Munger, Peter Lynch, Seth Klarman, Joel Greenblatt, Michael Burry)")
 
     args = parser.parse_args()
 
@@ -154,27 +155,32 @@ if __name__ == "__main__":
 
     # Select analysts
     selected_analysts = None
-    choices = questionary.checkbox(
-        "Select your AI analysts.",
-        choices=[questionary.Choice(display, value=value) for display, value in ANALYST_ORDER],
-        instruction="\n\nInstructions: \n1. Press Space to select/unselect analysts.\n2. Press 'a' to select/unselect all.\n3. Press Enter when done to run the hedge fund.\n",
-        validate=lambda x: len(x) > 0 or "You must select at least one analyst.",
-        style=questionary.Style(
-            [
-                ("checkbox-selected", "fg:green"),
-                ("selected", "fg:green noinherit"),
-                ("highlighted", "noinherit"),
-                ("pointer", "noinherit"),
-            ]
-        ),
-    ).ask()
+    choices = None  # 初始化 choices 变量
+    
+    if args.default_analysts:
+        selected_analysts = DEFAULT_ANALYSTS
+    else:
+        choices = questionary.checkbox(
+            "选择您的AI分析师",
+            choices=[questionary.Choice(display, value=value) for display, value in ANALYST_ORDER],
+            instruction="\n\n使用说明: \n1. 按空格键选择/取消选择分析师\n2. 按'a'键选择/取消选择所有\n3. 按回车键确认运行对冲基金\n",
+            validate=lambda x: len(x) > 0 or "您必须至少选择一位分析师",
+            style=questionary.Style(
+                [
+                    ("checkbox-selected", "fg:green"),
+                    ("selected", "fg:green noinherit"),
+                    ("highlighted", "noinherit"),
+                    ("pointer", "noinherit"),
+                ]
+            ),
+        ).ask()
 
-    if not choices:
+    if not choices and not args.default_analysts:  # 修改判断条件
         print("\n\nInterrupt received. Exiting...")
         sys.exit(0)
-    else:
+    elif not args.default_analysts:  # 只有在非默认模式下才使用 choices
         selected_analysts = choices
-        print(f"\nSelected analysts: {', '.join(Fore.GREEN + choice.title().replace('_', ' ') + Style.RESET_ALL for choice in choices)}\n")
+        print(f"\nSelected analysts: {', '.join(Fore.GREEN + choice.title().replace('_', ' ') + Style.RESET_ALL for choice in selected_analysts)}\n")
 
     # Select LLM model based on whether Ollama is being used
     model_choice = None

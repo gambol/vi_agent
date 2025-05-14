@@ -15,79 +15,89 @@ from src.agents.technicals import technical_analyst_agent
 from src.agents.valuation import valuation_agent
 from src.agents.warren_buffett import warren_buffett_agent
 
+from src.utils.display_names import ANALYST_DISPLAY_NAMES
+
 # Define analyst configuration - single source of truth
 ANALYST_CONFIG = {
     "aswath_damodaran": {
-        "display_name": "Aswath Damodaran",
+        "display_name": ANALYST_DISPLAY_NAMES["aswath_damodaran"],
         "agent_func": aswath_damodaran_agent,
         "order": 0,
     },
     "ben_graham": {
-        "display_name": "Ben Graham",
+        "display_name": ANALYST_DISPLAY_NAMES["ben_graham"],
         "agent_func": ben_graham_agent,
         "order": 1,
     },
     "bill_ackman": {
-        "display_name": "Bill Ackman",
+        "display_name": ANALYST_DISPLAY_NAMES["bill_ackman"],
         "agent_func": bill_ackman_agent,
         "order": 2,
     },
     "cathie_wood": {
-        "display_name": "Cathie Wood",
+        "display_name": ANALYST_DISPLAY_NAMES["cathie_wood"],
         "agent_func": cathie_wood_agent,
         "order": 3,
     },
     "charlie_munger": {
-        "display_name": "Charlie Munger",
+        "display_name": ANALYST_DISPLAY_NAMES["charlie_munger"],
         "agent_func": charlie_munger_agent,
         "order": 4,
     },
     "michael_burry": {
-        "display_name": "Michael Burry",
+        "display_name": ANALYST_DISPLAY_NAMES["michael_burry"],
         "agent_func": michael_burry_agent,
         "order": 5,
     },
     "peter_lynch": {
-        "display_name": "Peter Lynch",
+        "display_name": ANALYST_DISPLAY_NAMES["peter_lynch"],
         "agent_func": peter_lynch_agent,
         "order": 6,
     },
     "phil_fisher": {
-        "display_name": "Phil Fisher",
+        "display_name": ANALYST_DISPLAY_NAMES["phil_fisher"],
         "agent_func": phil_fisher_agent,
         "order": 7,
     },
     "stanley_druckenmiller": {
-        "display_name": "Stanley Druckenmiller",
+        "display_name": ANALYST_DISPLAY_NAMES["stanley_druckenmiller"],
         "agent_func": stanley_druckenmiller_agent,
         "order": 8,
     },
     "warren_buffett": {
-        "display_name": "Warren Buffett",
+        "display_name": ANALYST_DISPLAY_NAMES["warren_buffett"],
         "agent_func": warren_buffett_agent,
         "order": 9,
     },
     "technical_analyst": {
-        "display_name": "Technical Analyst",
+        "display_name": ANALYST_DISPLAY_NAMES["technical_analyst"],
         "agent_func": technical_analyst_agent,
         "order": 10,
     },
     "fundamentals_analyst": {
-        "display_name": "Fundamentals Analyst",
+        "display_name": ANALYST_DISPLAY_NAMES["fundamentals_analyst"],
         "agent_func": fundamentals_agent,
         "order": 11,
     },
     "sentiment_analyst": {
-        "display_name": "Sentiment Analyst",
+        "display_name": ANALYST_DISPLAY_NAMES["sentiment_analyst"],
         "agent_func": sentiment_agent,
         "order": 12,
     },
     "valuation_analyst": {
-        "display_name": "Valuation Analyst",
+        "display_name": ANALYST_DISPLAY_NAMES["valuation_analyst"],
         "agent_func": valuation_agent,
         "order": 13,
     },
 }
+
+# 默认选中的分析师
+DEFAULT_ANALYSTS = [
+    "warren_buffett",
+    "charlie_munger",
+    "peter_lynch",
+    "michael_burry"
+]
 
 # Derive ANALYST_ORDER from ANALYST_CONFIG for backwards compatibility
 ANALYST_ORDER = [(config["display_name"], key) for key, config in sorted(ANALYST_CONFIG.items(), key=lambda x: x[1]["order"])]
