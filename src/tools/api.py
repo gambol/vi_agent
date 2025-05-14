@@ -2,6 +2,7 @@ import datetime
 import os
 import pandas as pd
 import requests
+import random
 
 from src.data.cache import get_cache
 from src.data.models import (
@@ -17,10 +18,16 @@ from src.data.models import (
     InsiderTradeResponse,
     CompanyFactsResponse,
 )
-
+from src.llm.models import get_random_api_key
 # Global cache instance
 _cache = get_cache()
 
+def random_finance_dataset_api_key() -> str:
+    api_key = get_random_api_key("FINANCIAL_DATASETS_API_KEY")
+    if not api_key:
+        raise Exception("No API key found for financial datasets")
+    # print(f"Using API key: {api_key}")
+    return api_key
 
 def get_prices(ticker: str, start_date: str, end_date: str) -> list[Price]:
     """Fetch price data from cache or API."""
@@ -33,7 +40,7 @@ def get_prices(ticker: str, start_date: str, end_date: str) -> list[Price]:
 
     # If not in cache or no data in range, fetch from API
     headers = {}
-    if api_key := os.environ.get("FINANCIAL_DATASETS_API_KEY"):
+    if api_key := random_finance_dataset_api_key():
         headers["X-API-KEY"] = api_key
 
     url = f"https://api.financialdatasets.ai/prices/?ticker={ticker}&interval=day&interval_multiplier=1&start_date={start_date}&end_date={end_date}"
@@ -70,7 +77,7 @@ def get_financial_metrics(
 
     # If not in cache or insufficient data, fetch from API
     headers = {}
-    if api_key := os.environ.get("FINANCIAL_DATASETS_API_KEY"):
+    if api_key := random_finance_dataset_api_key():
         headers["X-API-KEY"] = api_key
 
     url = f"https://api.financialdatasets.ai/financial-metrics/?ticker={ticker}&report_period_lte={end_date}&limit={limit}&period={period}"
@@ -101,7 +108,7 @@ def search_line_items(
     """Fetch line items from API."""
     # If not in cache or insufficient data, fetch from API
     headers = {}
-    if api_key := os.environ.get("FINANCIAL_DATASETS_API_KEY"):
+    if api_key := random_finance_dataset_api_key():
         headers["X-API-KEY"] = api_key
 
     url = "https://api.financialdatasets.ai/financials/search/line-items"
@@ -143,7 +150,7 @@ def get_insider_trades(
 
     # If not in cache or insufficient data, fetch from API
     headers = {}
-    if api_key := os.environ.get("FINANCIAL_DATASETS_API_KEY"):
+    if api_key := random_finance_dataset_api_key():
         headers["X-API-KEY"] = api_key
 
     all_trades = []
@@ -204,7 +211,7 @@ def get_company_news(
 
     # If not in cache or insufficient data, fetch from API
     headers = {}
-    if api_key := os.environ.get("FINANCIAL_DATASETS_API_KEY"):
+    if api_key := random_finance_dataset_api_key():
         headers["X-API-KEY"] = api_key
 
     all_news = []
@@ -257,7 +264,7 @@ def get_market_cap(
     if end_date == datetime.datetime.now().strftime("%Y-%m-%d"):
         # Get the market cap from company facts API
         headers = {}
-        if api_key := os.environ.get("FINANCIAL_DATASETS_API_KEY"):
+        if api_key := random_finance_dataset_api_key():
             headers["X-API-KEY"] = api_key
 
         url = f"https://api.financialdatasets.ai/company/facts/?ticker={ticker}"

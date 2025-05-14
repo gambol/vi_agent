@@ -95,8 +95,13 @@ ANALYST_CONFIG = {
 DEFAULT_ANALYSTS = [
     "warren_buffett",
     "charlie_munger",
-    "peter_lynch",
-    "michael_burry"
+    # "peter_lynch",
+    # "michael_burry",
+    # "phil_fisher",
+    # "stanley_druckenmiller",
+    "sentiment_analyst",
+    "fundamentals_analyst",
+    "technical_analyst",
 ]
 
 # Derive ANALYST_ORDER from ANALYST_CONFIG for backwards compatibility

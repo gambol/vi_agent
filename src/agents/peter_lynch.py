@@ -472,7 +472,7 @@ def generate_lynch_output(
                 {{
                   "signal": "bullish" | "bearish" | "neutral",
                   "confidence": 0 to 100,
-                  "reasoning": "中文说明原因"
+                  "reasoning": "string"
                 }}
                 """,
             ),
