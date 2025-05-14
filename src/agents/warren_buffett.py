@@ -438,7 +438,7 @@ def generate_buffett_output(
                 {{
                   "signal": "bullish" | "bearish" | "neutral",
                   "confidence": float between 0 and 100,
-                  "reasoning":  "string"
+                  "reasoning":  "用中文分析理由"
                 }}
                 """,
             ),

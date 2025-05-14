@@ -732,7 +732,7 @@ def generate_munger_output(
             {{
               "signal": "bullish/bearish/neutral",
               "confidence": float (0-100),
-              "reasoning":  "string"
+              "reasoning":  "用中文分析理由"
             }}
             """
         )
