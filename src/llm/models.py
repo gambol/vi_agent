@@ -181,12 +181,12 @@ def get_model(model_name: str, model_provider: ModelProvider) -> ChatOpenAI | Ch
                     convert_system_message_to_human=True  # 添加这个参数
                 )
             
-            try:
-                test_response = llm.invoke("Hello")
-                print("成功测试 Gemini 连接")
-            except Exception as e:
-                print(f"测试 Gemini 连接时出错: {str(e)}")
-                raise
+            # try:
+            #     test_response = llm.invoke("Hello")
+            #     print("成功测试 Gemini 连接")
+            # except Exception as e:
+            #     print(f"测试 Gemini 连接时出错: {str(e)}")
+            #     raise
             
             # logger.info(f"成功初始化 Gemini 模型: {model_name}")
             return llm
